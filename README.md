@@ -1,54 +1,53 @@
-<h1 align="center">
-    <img width="120" height="120" src="https://i.imgur.com/qidPCBf.png" alt=""><br>
-    Honkai: Star Rail Helper
-</h1>
-
-<p align="center">
-   <img src="https://img.shields.io/badge/NodeJS-20.2.0-green">
-   <img src="https://img.shields.io/github/license/torikushiii/starrail-auto">
-   <img src="https://img.shields.io/github/stars/torikushiii/starrail-auto">
-   <a href="https://app.codacy.com/gh/torikushiii/starrail-auto/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade"><img src="https://app.codacy.com/project/badge/Grade/8bf05ddfba214bd2b7dbdcd28600e2c9"/></a>
-</p>
-
-![Alt](https://repobeats.axiom.co/api/embed/258364749d69138ce925035dfe396bac085e8f1f.svg "Repobeats analytics image")
-
-# Honkai: Star Rail Helper
-
-A multi-purpose tool for the Honkai Impact: Star Rail that can be used to automate the daily check-in process, check stamina and expedition status.
+# HoYoLAB Auto Check-In
+This is a fork of torikushiii's multi-featured Honkai: Star Rail tool ([starrail-auto](https://github.com/torikushiii/starrail-auto)) that has been pared down to contain just the Google Apps Script for automatically performing the HoYoLAB check-in, and then added to in order to support Genshin Impact's check-in.
 
 # Services
-If you don't want to use Node.js and only want to use it for auto check-in, you can use one of the following services:
+Use the script with Google Apps Script to run automatically in the cloud.
 - [Google Apps Script](https://github.com/torikushiii/starrail-auto/tree/master/services/google-script)
 
 # Features
 - [x] Auto Check-in
 - [x] Multiple accounts
-- [x] Stamina check (Node only)
-    - Will send you notification if your stamina is above set [threshold](https://i.imgur.com/EFPVkI9.png) (default: 170)
-- [x] Expedition check (Node only)
-    - Will send you notification if your expedition is [done](https://i.imgur.com/qjFWrdl.png)
-- [x] Reminders (Node only)
-    - Dailies
-        - Remind you to do your [daily commission](https://i.imgur.com/5kEqkTG.png) every day at 09:00 PM or your specified time (Only if you haven't done it yet)
-    - Weeklies
-        - Remind you to do your [weekly boss](https://i.imgur.com/0aoC7bu.png) every your specified time or Sunday 09:00 PM
-        - Remind you to do your Simulated Universe points every your specified time or Sunday 09:00 PM
 - [x] Discord notifications
-- [x] Telegram notifications (Node only)
-    - Commands
-        - [x] Check stamina
-        - [x] Check expedition status
 
 # Pre-requisites
-- [Node.js](https://nodejs.org/en/)
+- Google Account
 
-# Installation
-1. Clone the repository.
-2. Run `npm install` to install the dependencies.
-3. Create a `config.js` or rename `example.config.js` to `config.js`.
-4. Follow the instructions in the `config.js` file.
+# Set up
+1. Go to [Google Apps Script](https://script.google.com/home).
+2. Create a new project.
+    ![](https://i.imgur.com/y3FgPUV.png)
+3. You will be greeted with this screen, delete the contents of `myFunction` and click on "Untitled project" to rename it.
+    ![](https://i.imgur.com/4dRgXLe.png)
+4. Copy the contents of `index.js` and paste it into the editor.
+    ![](https://i.imgur.com/ZaA2oSX.png)
+5. Click on "Project settings".
+    ![](https://i.imgur.com/GMhLjEw.png)
+6. Scroll down and add the following to the "Script properties" section:
+   ```
+   COOKIE
+   DISCORD_WEBHOOK
+   ```
+    ![](https://i.imgur.com/BudKBiI.png)
+7. Add `COOKIE` with your cookie.
+   - **IF YOU WANT TO RUN IT WITH MULTIPLE ACCOUNTS, SEPARATE THE COOKIES WITH A HASH (#).**
+   - **EXAMPLE: `COOKIE=cookie1#cookie2#cookie3`**
+8. Add `DISCORD_WEBHOOK` with your Discord webhook (optional).
+9. Click on "Save script properties".
+10. Click on "Editor" and then "Save Project" and "Run" to run it once.
+    ![](https://i.imgur.com/4B8jZea.png)
+    ![](https://i.imgur.com/SvNODZL.png)
+11. When first running the script, you will be prompted to authorize the script.
+    ![](https://i.imgur.com/igXjtkO.png)
+12. Click on "Review Permissions".
+13. Choose your Google account if prompted.
+14. You will be prompted to allow the script to access your Google account.
+    ![](https://i.imgur.com/n7gsH6o.png)
+15. Click on "Allow".
+16. After that when you run the script, the Execution log will show the output.
+    ![](https://i.imgur.com/KFGR003.png)
 
-# Usage
+# Getting your cookie
 1. Go to the Daily Check-In page [here](https://act.hoyolab.com/bbs/event/signin/hkrpg/index.html?act_id=e202303301540311).
 2. Log in with your miHoYo account.
 3. Open the browser console (F12).
@@ -56,17 +55,39 @@ If you don't want to use Node.js and only want to use it for auto check-in, you 
 5. Type in `document.cookie` in the console and press Enter.
 6. Copy the output from the console.
    ![](https://i.imgur.com/hFCL4yN.png)
-7. Paste the output into `cookies` property in the `config.js` file.
-8. Fill in the `webhook` field if you want to receive a Discord notification when the check-in is successful.
-9. Run `index.js` with `node index.js` if you want to run it indefinitely everytime the daily reset occurs.
-10. Run `index.js` with `node index.js --sign` if you want to run it once.
-11. Additonal arguments:
-    - `--stamina` to check all accounts stamina. (You need to set your in-game `uid` for it to work)
-    - `--expedition` to check all accounts expedition status. (You need to set your in-game `uid` for it to work)
-    - `--help` to show the help menu.
+7. Paste it into the "Value" field for "COOKIE" in the "Script properties" section.
+   - **IF YOU WANT TO RUN IT WITH MULTIPLE ACCOUNTS, SEPARATE THE COOKIES WITH A HASH (#).**
+   - **EXAMPLE: `COOKIE=cookie1#cookie2#cookie3`**
+8. Click on "Save script properties".
 
-# Notifications
-For Discord notifications or Telegram setup, refer to this folder: [setup](https://github.com/torikushiii/starrail-auto/tree/master/setup)
+# Trigger
+If you want to automate the script, you can add a trigger to run it daily.
+1. Click on the "Triggers" icon.
+    ![](https://i.imgur.com/hAjfBhr.png)
+2. Click on "Add Trigger".
+    ![](https://i.imgur.com/WCVRpKA.png)
+3. Choose the following settings:
+    - Choose which function to run: `run`
+    - Choose which deployment should run: `Head`
+    - Select event source: `Time-driven`
+    - Select type of time based trigger: `Day timer`
+    - Select time of day: `Midnight to 1am` or any time when the check-in resets
+    ![](https://i.imgur.com/HSDge0k.png)
+4. Click on "Save".
 
-# Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. If there's any bugs, please open an issue.
+# Discord Webhooks
+This is an **OPTIONAL** feature. If you want to receive a Discord notification when the check-in is successful, you can create a Discord webhook and add it to the `config.js` file.
+
+1. Go to edit channel settings. (Create your own server if you don't have one.)
+   ![](https://i.imgur.com/FWfK3My.png)
+2. Go to the "Integrations" tab and click on "Create Webhook".
+   ![](https://i.imgur.com/DnELZJl.png)
+3. Create a name for your webhook and click on "Copy Webhook URL".
+   ![](https://i.imgur.com/AkfTTBB.png)
+4. Paste the URL into the `DISCORD_WEBHOOK` field at the `config.js` file.
+5. Click on "Save Changes".
+   ![](https://i.imgur.com/KFYeonU.png)
+6. You should receive a Discord notification when the check-in is successful.
+   ![](https://i.imgur.com/MOkfwrK.png)
+7. And if you enable stamina check, you should receive a Discord notification when your stamina is above your set threshold and when it capped.
+   ![](https://i.imgur.com/B1uDNiT.png)
