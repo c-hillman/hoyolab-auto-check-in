@@ -15,6 +15,9 @@ const HSR_BASE_URL = "https://sg-public-api.hoyolab.com/event/luna/os";
 const GENSHIN_ACT_ID = "e202102251931481";
 const GENSHIN_BASE_URL = "https://sg-hk4e-api.hoyolab.com/event/sol";
 
+const ZZZ_ACT_ID = "e202406031448091";
+const ZZZ_BASE_URL = "https://sg-act-nap-api.hoyolab.com/event/luna/zzz/os";
+
 class Discord {
     constructor (DISCORD_WEBHOOK) {
         this.webhook = DISCORD_WEBHOOK;
@@ -385,15 +388,167 @@ class Genshin {
     }
 }
 
+class ZZZ {
+    constructor (cookie) {
+        if (typeof cookie !== "string" || typeof cookie === "undefined") {
+            throw new Error("[ZZZ] cookie must be a string");
+        }
+
+        this.cookie = cookie;
+    }
+
+    static async sign (cookie) {
+        const payload = {
+            act_id: ZZZ_ACT_ID
+        };
+
+        const options = {
+            method: "POST",
+            headers: {
+                "User-Agent": ZZZ.userAgent,
+                Cookie: cookie
+            },
+            payload: JSON.stringify(payload)
+        };
+
+        const res = UrlFetchApp.fetch(`${ZZZ_BASE_URL}/sign`, options);
+
+        if (res.getResponseCode() !== 200) {
+            throw new Error(`[ZZZ] Sign HTTP error: ${res.getResponseCode()}`);
+        }
+
+        const body = JSON.parse(res.getContentText());
+        if (body.retcode !== 0 && body.message !== "OK") {
+            throw new Error(`[ZZZ] Sign API error: ${body.message}`);
+        }
+
+        return true;
+    }
+
+    async run () {
+        const cookies = this.parseCookies;
+
+        let counter = 0;
+        for (const cookie of cookies) {
+            counter++;
+
+            const info = await ZZZ.getInfo(cookie);
+            const data = {
+                today: info.today,
+                total: info.total_sign_day,
+                issigned: info.is_sign,
+                missed: info.sign_cnt_missed
+            };
+
+            const discord = new Discord(DISCORD_WEBHOOK);
+            if (data.issigned) {
+                await discord.send({ message: `[ZZZ][Account ${counter}]: You've already checked in today, Proxy~` }, true);
+                console.log(`[ZZZ][Account ${counter}]: You've already checked in today, Proxy~`);
+                continue;
+            }
+
+      const awards = await ZZZ.awards(cookie);
+            if (awards.length === 0) {
+                throw new Error("[ZZZ] There's no awards to claim (?)");
+            }
+
+            const totalSigned = data.total;
+            const awardData = {
+                name: awards[totalSigned].name,
+                count: awards[totalSigned].cnt
+            };
+
+            const sign = await ZZZ.sign(cookie);
+            if (sign) {
+                console.log(`[ZZZ][Account ${counter}]: Signed in successfully! You have signed in for ${data.total + 1} days!`);
+                console.log(`[ZZZ][Account ${counter}]: You have received ${awardData.count}x ${awardData.name}!`);
+
+                if (!DISCORD_WEBHOOK || typeof DISCORD_WEBHOOK !== "string") {
+                    console.log("[ZZZ] No Discord webhook provided, skipping...");
+                    return true;
+                }
+
+                await discord.send({
+                    signed: data.total + 1,
+                    award: awardData
+                });
+            }
+        }
+    }
+
+    static async getInfo (cookie) {
+        const options = {
+            headers: {
+                "User-Agent": ZZZ.userAgent,
+                Cookie: cookie
+            },
+            muteHttpExceptions: true,
+            method: "GET"
+        };
+
+        const res = UrlFetchApp.fetch(`${ZZZ_BASE_URL}/info?act_id=${ZZZ_ACT_ID}`, options);
+
+        if (res.getResponseCode() !== 200) {
+            throw new Error(`[ZZZ] Info HTTP error: ${res.getResponseCode()}`);
+        }
+
+        const body = JSON.parse(res.getContentText());
+        if (body.retcode !== 0 && body.message !== "OK") {
+            throw new Error(`[ZZZ] Info API error: ${body.message}`);
+        }
+
+        return body.data;
+    }
+
+    static async awards (cookie) {
+        const options = {
+            headers: {
+                "User-Agent": ZZZ.userAgent,
+                Cookie: cookie
+            },
+            muteHttpExceptions: true,
+            method: "GET"
+        };
+
+        const res = UrlFetchApp.fetch(`${ZZZ_BASE_URL}/home?act_id=${ZZZ_ACT_ID}`, options);
+
+        if (res.getResponseCode() !== 200) {
+            throw new Error(`[ZZZ] HTTP error: ${res.getResponseCode()}`);
+        }
+
+        const body = JSON.parse(res.getContentText());
+
+        if (body.retcode !== 0 && body.message !== "OK") {
+            throw new Error(`[ZZZ] API error: ${body.message}`);
+        }
+
+        return body.data.awards;
+    }
+
+    get parseCookies () {
+        return this.cookie.split("#");
+    }
+
+    static get userAgent () {
+        return "Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Mobile Safari/537.36";
+    }
+}
+
 function run () {
     const starRail = new StarRail(COOKIE);
     starRail.run()
         .catch((e) => {
             console.error(e);
         });
-  const genshin = new Genshin(COOKIE);
+    const genshin = new Genshin(COOKIE);
     genshin.run()
         .catch((e) => {
             console.error(e);
         });
+    const zzz = new ZZZ(COOKIE);
+    zzz.run()
+        .catch((e) => {
+            console.error(e);
+        });
+
 }
